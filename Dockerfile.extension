@@ -1,0 +1,39 @@
+FROM ak1raxyz/nginx-php-fpm:7.4-fpm-1.19-nginx
+
+# tars-php extension
+RUN git clone https://github.com/TarsPHP/tars-extension.git && \
+    cd tars-extension && \
+    phpize && \
+    ./configure && \
+    make && \
+    make install && \
+    echo "extension=phptars.so" > /etc/php/7.4/mods-available/tars-extension.ini && \
+    ln -sf /etc/php/7.4/mods-available/tars-extension.ini /etc/php/7.4/fpm/conf.d/20-tars-extension.ini && \
+    ln -sf /etc/php/7.4/mods-available/tars-extension.ini /etc/php/7.4/cli/conf.d/20-tars-extension.ini && \
+    cd - && \
+    rm -rf tars-extension
+
+RUN set -ex && \
+    apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install --no-install-recommends --no-install-suggests -y \
+        libhiredis-dev librabbitmq-dev && \
+    pecl -d php_suffix=7.4 install -o -f swoole mongodb protobuf amqp grpc && \
+    echo "extension=swoole.so" > /etc/php/7.4/mods-available/swoole.ini && \
+    ln -sf /etc/php/7.4/mods-available/swoole.ini /etc/php/7.4/fpm/conf.d/20-swoole.ini && \
+    ln -sf /etc/php/7.4/mods-available/swoole.ini /etc/php/7.4/cli/conf.d/20-swoole.ini && \
+    echo "extension=mongodb.so" > /etc/php/7.4/mods-available/mongodb.ini && \
+    ln -sf /etc/php/7.4/mods-available/mongodb.ini /etc/php/7.4/fpm/conf.d/20-mongodb.ini && \
+    ln -sf /etc/php/7.4/mods-available/mongodb.ini /etc/php/7.4/cli/conf.d/20-mongodb.ini && \
+    echo "extension=protobuf.so" > /etc/php/7.4/mods-available/protobuf.ini && \
+    ln -sf /etc/php/7.4/mods-available/protobuf.ini /etc/php/7.4/fpm/conf.d/20-protobuf.ini && \
+    ln -sf /etc/php/7.4/mods-available/protobuf.ini /etc/php/7.4/cli/conf.d/20-protobuf.ini && \
+    echo "extension=amqp.so" > /etc/php/7.4/mods-available/amqp.ini && \
+    ln -sf /etc/php/7.4/mods-available/amqp.ini /etc/php/7.4/fpm/conf.d/20-amqp.ini && \
+    ln -sf /etc/php/7.4/mods-available/amqp.ini /etc/php/7.4/cli/conf.d/20-amqp.ini && \
+    echo "extension=grpc.so" > /etc/php/7.4/mods-available/grpc.ini && \
+    ln -sf /etc/php/7.4/mods-available/grpc.ini /etc/php/7.4/fpm/conf.d/20-grpc.ini && \
+    ln -sf /etc/php/7.4/mods-available/grpc.ini /etc/php/7.4/cli/conf.d/20-grpc.ini && \
+    apt-get clean && \
+    apt-get autoremove && \
+    rm -rf /var/lib/apt/lists/*
